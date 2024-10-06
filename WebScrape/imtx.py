@@ -4,10 +4,8 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from PIL import Image
-import io
 
-def get_images_from_google(driver, delay, max_images, download_path):
+def get_images_from_google(driver, delay, max_images, text_file_path):
     def scroll_down(driver):
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(delay)
@@ -37,32 +35,15 @@ def get_images_from_google(driver, delay, max_images, download_path):
                     image_urls.add(image_url)
                     print(f"Found {len(image_urls)}: {image_url}")
 
-                    # Save image immediately after fetching its URL
-                    download_image(download_path, image_url, f"{len(image_urls)}.jpg")
+                    # Append the image URL to the text file
+                    append_to_file(text_file_path, image_url)
 
                     if len(image_urls) >= max_images:
                         return  # Stop once we have enough images
 
-def download_image(download_path, url, file_name):
-    try:
-        image_content = requests.get(url).content
-        image_file = io.BytesIO(image_content)
-        image = Image.open(image_file)
-
-        # Check if the image can be identified and is in a compatible format
-        if image.format not in ["JPEG", "PNG"]:
-            print(f"Skipping image with unsupported format: {url}")
-            return
-
-        file_path = os.path.join(download_path, file_name)
-
-        with open(file_path, "wb") as f:
-            image.save(f, "JPEG")
-
-        print(f"Downloaded {file_name}")
-    except Exception as e:
-        print(f'FAILED to download {file_name} -', e)
-
+def append_to_file(file_path, url):
+    with open(file_path, "a") as f:  # Open the file in append mode
+        f.write(url + "\n")  # Write the URL to the file followed by a newline
 
 # Ask the user for the search query
 search_query = input("Enter your Google Images search query: ")
@@ -70,6 +51,9 @@ search_query = input("Enter your Google Images search query: ")
 # Create the 'imgs/' directory if it doesn't exist
 download_path = "D:/##BTECH TOTAL/@Hackathons/Smart-Vision-Technology-FlipkartRobotics/imgs"
 os.makedirs(download_path, exist_ok=True)
+
+# Define the text file path to save URLs
+text_file_path = os.path.join(download_path, "image_urls.txt")
 
 # Create a Chrome driver
 options = Options()
@@ -80,8 +64,10 @@ driver = webdriver.Chrome(options=options)
 search_url = f"https://www.google.com/search?q={search_query}&tbm=isch"
 driver.get(search_url)
 
-# Perform image scraping and downloading, saving images immediately
-get_images_from_google(driver, 2, 10, download_path)
+# Perform image scraping and save URLs to the text file
+get_images_from_google(driver, 2, 1000, text_file_path)
 
 # Close the driver instance
 driver.quit()
+
+print(f"Image URLs have been saved to {text_file_path}.")
