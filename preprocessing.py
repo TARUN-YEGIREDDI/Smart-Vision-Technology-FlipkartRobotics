@@ -215,7 +215,7 @@ def preprocess_image(image, target_luminance=130, adjustment_factor=1.2):
 
     image = enhance_features(image)
 
-    image = convert_to_grayscale(image)
+    # image = convert_to_grayscale(image)
 
     
     # Future preprocessing steps can be added here
@@ -227,7 +227,7 @@ def preprocess_image(image, target_luminance=130, adjustment_factor=1.2):
 
 def main():
     # Read the input image
-    image_path = 'assets/dosa.jpg'  # Replace with your image path
+    image_path = 'assets/vegetables.jpg'  # Replace with your image path
     image = cv2.imread(image_path)
     
     if image is None:
