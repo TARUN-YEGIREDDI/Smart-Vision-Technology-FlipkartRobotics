@@ -1,16 +1,16 @@
 from ultralytics import YOLO
 import cv2
 
-model = YOLO('model.pt')
+model = YOLO(r'Models\best.pt')
 
-results = model.predict('choco.jpeg',conf = 0.25)
+results = model.predict(r"C:\Users\darkn\Downloads\kur kur.jpg",conf = 0.25)
 
 # print(results)
 
 
 
 # Load the original image using OpenCV
-img = cv2.imread('choco.jpeg')
+img = cv2.imread(r"C:\Users\darkn\Downloads\kur kur.jpg")
 
 # The results object contains the boxes, class labels, and confidence scores
 for result in results:

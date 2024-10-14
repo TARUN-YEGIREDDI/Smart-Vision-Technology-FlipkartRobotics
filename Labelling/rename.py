@@ -20,7 +20,7 @@ def rename_images(folder_path):
             counter += 1
 
 # Specify the folder containing images
-folder_path = r'D:\##BTECH TOTAL\@Hackathons\Smart-Vision-Technology-FlipkartRobotics\Data\rice'  # Change this to your image folder path
+folder_path = r'D:\##BTECH TOTAL\@Hackathons\Smart-Vision-Technology-FlipkartRobotics\Data\Tea'  # Change this to your image folder path
 
 # Call the function
 rename_images(folder_path)
