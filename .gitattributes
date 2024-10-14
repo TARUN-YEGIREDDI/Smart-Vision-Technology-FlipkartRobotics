@@ -12,3 +12,5 @@ Data/atta&flours filter=lfs diff=lfs merge=lfs -text
 Data/Tea filter=lfs diff=lfs merge=lfs -text
 Data/Biscuits filter=lfs diff=lfs merge=lfs -text
 Data/dryfruits filter=lfs diff=lfs merge=lfs -text
+/Data/atta&flours filter=lfs diff=lfs merge=lfs -text
+Freshness/ filter=lfs diff=lfs merge=lfs -text
