@@ -2,13 +2,13 @@ from ultralytics import YOLO
 import cv2
 
 # Load the trained YOLO model
-model = YOLO('model.pt')  # Replace with your actual model path
+model = YOLO('Models/model2(18).pt')  # Replace with your actual model path
 
 # Perform prediction on the input image
-results = model.predict('choco.jpeg', conf=0.25)
+results = model.predict('output_image_with_boxes.jpg', conf=0.25)
 
 # Load the original image using OpenCV
-img = cv2.imread('choco.jpeg')
+img = cv2.imread('output_image_with_boxes.jpg')
 
 # Retrieve class names from the model
 class_names = model.names  # Dictionary: {0: 'class0', 1: 'class1', ...}
@@ -32,7 +32,7 @@ for result in results:
 
         # Add a label with the class name and confidence
         label = f"{class_names[class_id]}: {confidence:.2f}"
-        # Calculate text size to create a filled rectangle as background for text
+        # # Calculate text size to create a filled rectangle as background for text
         (text_width, text_height), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
         cv2.rectangle(img, (x_min, y_min - text_height - baseline), (x_min + text_width, y_min), color, -1)
         cv2.putText(img, label, (x_min, y_min - baseline), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
