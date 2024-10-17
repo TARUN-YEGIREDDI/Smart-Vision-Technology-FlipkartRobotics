@@ -20,6 +20,7 @@ for result in results:
     confidences = result.boxes.conf  # Confidence scores
     class_ids = result.boxes.cls  # Class labels (indices)
 
+    print(len(boxes))
     # Iterate through each detected object
     for i in range(len(boxes)):
         x_min, y_min, x_max, y_max = map(int, boxes[i])  # Convert coordinates to integers
