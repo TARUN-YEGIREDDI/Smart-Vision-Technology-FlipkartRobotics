@@ -9,19 +9,44 @@ model = YOLO('Models/model2(18).pt')  # Replace with your actual model path
 class_names = model.names  # Dictionary: {0: 'class0', 1: 'class1', ...}
 
 # Initialize webcam (0 is usually the default camera)
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(1)
 
 # Check if the webcam is opened correctly
 if not cap.isOpened():
     print("Error: Could not open webcam.")
     exit()
 
-# Optional: Set the desired frame width and height
-# cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-# cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+# Store previous objects to compare if they change
+previous_objects = []
+cropped_images = []
 
-# To calculate FPS
-prev_time = 0
+def detect_objects(frame):
+    """Detect objects and return detected objects info and cropped images."""
+    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = model.predict(rgb_frame, conf=0.25, verbose=False)
+
+    current_objects = []
+    cropped_images = []
+
+    for result in results:
+        boxes = result.boxes.xyxy  # Bounding box coordinates
+        confidences = result.boxes.conf  # Confidence scores
+        class_ids = result.boxes.cls  # Class labels (indices)
+
+        for i in range(len(boxes)):
+            x_min, y_min, x_max, y_max = map(int, boxes[i])
+            confidence = confidences[i].item()
+            class_id = int(class_ids[i].item())
+
+            # Record the detected object info
+            object_info = (class_id, confidence, x_min, y_min, x_max, y_max)
+            current_objects.append(object_info)
+
+            # Crop the image using bounding box coordinates
+            cropped_img = frame[y_min:y_max, x_min:x_max]
+            cropped_images.append(cropped_img)
+
+    return current_objects, cropped_images, len(cropped_images)
 
 print("Starting real-time object detection. Press 'q' to quit.")
 
@@ -31,51 +56,28 @@ while True:
         print("Failed to grab frame.")
         break
 
-    # Perform prediction on the current frame
-    # The YOLO model expects images in RGB format
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = model.predict(rgb_frame, conf=0.25, verbose=False)
+    # Detect objects on the current frame
+    current_objects, new_cropped_images, No_of_items = detect_objects(frame)
 
-    # Process the results
-    for result in results:
-        # Extract bounding boxes, class labels, and confidence scores
-        boxes = result.boxes.xyxy  # Bounding box coordinates in (x_min, y_min, x_max, y_max) format
-        confidences = result.boxes.conf  # Confidence scores
-        class_ids = result.boxes.cls  # Class labels (indices)
-
-        # Iterate through each detected object
-        for i in range(len(boxes)):
-            x_min, y_min, x_max, y_max = map(int, boxes[i])  # Convert coordinates to integers
-            confidence = confidences[i].item()  # Convert tensor to float
-            class_id = int(class_ids[i].item())  # Convert tensor to int
-
-            # Draw bounding box
-            color = (0, 255, 0)  # Green color for the bounding box
-            cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color, 2)
-
-            # Add a label with the class name and confidence
-            label = f"{class_names[class_id]}: {confidence:.2f}"
-            # Calculate text size to create a filled rectangle as background for text
-            (text_width, text_height), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
-            cv2.rectangle(frame, (x_min, y_min - text_height - baseline), 
-                                 (x_min + text_width, y_min), color, -1)
-            cv2.putText(frame, label, (x_min, y_min - baseline), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
-
-            # Optional: Crop and save detected objects (can slow down processing)
-            # cropped_img = frame[y_min:y_max, x_min:x_max]
-            # cropped_img_filename = f"cropped_{class_names[class_id]}_{i}.jpg"
-            # cv2.imwrite(cropped_img_filename, cropped_img)
-            # print(f"Saved cropped image: {cropped_img_filename}")
-
-    # Calculate and display FPS
-    curr_time = time.time()
-    fps = 1 / (curr_time - prev_time) if prev_time else 0
-    prev_time = curr_time
-    cv2.putText(frame, f"FPS: {fps:.2f}", (20, 30), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    # if No_of_items >= 2:
+    #     print(f"Number of cropped images detected: {No_of_items}")
+    #     cropped_images.extend(new_cropped_images)  # Add newly cropped images to the list
+    #     break  # Exit the loop after detecting objects
 
     # Display the frame with bounding boxes
+    for obj in current_objects:
+        class_id, confidence, x_min, y_min, x_max, y_max = obj
+        label = f"{class_names[class_id]}: {confidence:.2f}"
+        color = (0, 255, 0)
+        
+        # Draw bounding box and label
+        cv2.rectangle(frame, (x_min, y_min), (x_max, y_max), color, 2)
+        (text_width, text_height), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
+        cv2.rectangle(frame, (x_min, y_min - text_height - baseline), 
+                      (x_min + text_width, y_min), color, -1)
+        cv2.putText(frame, label, (x_min, y_min - baseline), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+
     cv2.imshow('Real-Time Object Detection', frame)
 
     # Exit when 'q' is pressed
@@ -86,3 +88,12 @@ while True:
 # Release resources
 cap.release()
 cv2.destroyAllWindows()
+
+# Now display the cropped images
+if len(cropped_images) > 0:
+    for i, cropped_image in enumerate(cropped_images):
+        cv2.imshow(f'Cropped Image {i + 1}', cropped_image)
+        cv2.waitKey(0)  # Wait for a key press to close the window
+
+cv2.destroyAllWindows()
+print("Finished processing. All cropped images have been displayed.")
