@@ -23,7 +23,7 @@ lock = threading.Lock()
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "object_count": object_count})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 def run_object_detection():
     global object_count, object_details
